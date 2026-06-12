@@ -1,0 +1,44 @@
+#include <WiFi.h> 
+#include <HTTPClient.h> 
+// WiFi details 
+const char* ssid = "Wokwi-GUEST"; 
+const char* password = ""; 
+// ThingSpeak Write API Key 
+String apiKey = "MM7JXYQC3HUAVY17"; 
+// PIR sensor connected to GPIO 13 
+int pirPin = 13; 
+void setup() { 
+  // Start Serial Monitor 
+  Serial.begin(115200); 
+  // Set PIR pin as input 
+  pinMode(pirPin, INPUT); 
+  // Connect to WiFi 
+  WiFi.begin(ssid, password); 
+  while (WiFi.status() != WL_CONNECTED) { 
+    delay(500); 
+    Serial.print("."); 
+  } 
+  Serial.println("WiFi Connected"); 
+} 
+void loop() { 
+  // Read motion sensor value (0 or 1) 
+  int motion = digitalRead(pirPin); 
+  // Check WiFi connection 
+  if (WiFi.status() == WL_CONNECTED) { 
+    HTTPClient http; 
+    // Create ThingSpeak URL with sensor value 
+    String url = 
+      "http://api.thingspeak.com/update?api_key=" 
+      + apiKey + 
+      "&field1=" + 
+      String(motion); 
+    // Send data to ThingSpeak 
+    http.begin(url); 
+    // Get server response code 
+    int code = http.GET(); 
+    // Print response code on Serial Monitor 
+    Serial.println(code); 
+    http.end(); 
+  } 
+  delay(15000);        // Wait 15 seconds before next update 
+}
